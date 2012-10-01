@@ -1,7 +1,7 @@
 module BestInPlace
   module ControllerExtensions
-    def respond_with_bip(obj)
-      obj.changed? ? respond_bip_error(obj) : respond_bip_ok(obj)
+    def respond_with_bip(obj, error_message = nil)
+      obj.changed? ? respond_bip_error(obj, error_message) : respond_bip_ok(obj)
     end
 
   private
@@ -16,8 +16,8 @@ module BestInPlace
       end
     end
 
-    def respond_bip_error(obj)
-      render :json => obj.errors.full_messages, :status => :unprocessable_entity
+    def respond_bip_error(obj, error_message = nil)
+      render :json => (error_message ? error_message : obj.errors.full_messages), :status => :unprocessable_entity
     end
   end
 end
