@@ -1,7 +1,7 @@
 # encoding: utf-8
 require "spec_helper"
 
-describe "Double initialization bug", :js => true do
+describe "Monitor new fields", :js => true do
   before do
     @user = User.new :name => "Lucia",
       :last_name => "Napoli",
@@ -15,20 +15,26 @@ describe "Double initialization bug", :js => true do
       :money => 100
   end
 
-  it "should be able to change a boolean value" do
+  it "should work when new best_in_place spans are added to the page" do
     @user.save!
-    visit double_init_user_path(@user)
+    visit show_ajax_user_path(@user)
 
-    within("#receive_email") do
-      page.should have_content("No thanks")
+    sleep(1) #give time to the ajax request to work
+
+    within("#email") do
+      page.should have_content("lucianapoli@gmail")
     end
 
-    bip_bool @user, :receive_email
+    bip_text @user, :email, "new@email.com"
 
-    visit double_init_user_path(@user)
-    within("#receive_email") do
-      page.should have_content("Yes of course")
+    within("#email") do
+      page.should have_content("new@email.com")
     end
 
+    bip_text @user, :email, "new_two@email.com"
+
+    within("#email") do
+      page.should have_content("new_two@email.com")
+    end
   end
 end
