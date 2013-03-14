@@ -13,6 +13,9 @@ class User < ActiveRecord::Base
     :format => {:with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i, :message => "has wrong email format"}
   validates :zip, :numericality => true, :length => { :minimum => 5 }
   validates_numericality_of :money, :allow_blank => true
+  validates_numericality_of :money_proc, :allow_blank => true
+
+  alias_attribute :money_custom, :money
 
   def address_format
     "<b>addr => [#{address}]</b>".html_safe

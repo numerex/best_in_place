@@ -53,13 +53,17 @@ Options:
   If not defined it will show *"-"*.
 - **:activator**: Is the DOM object that can activate the field. If not defined the user will making editable by clicking on it.
 - **:ok_button**: (Inputs and textareas only) If set to a string, then an OK button will be shown with the string as its label, replacing save on blur.
+- **:ok_button_class**: (Inputs and textareas only) Specifies any extra classes to set on the OK button.
 - **:cancel_button**: (Inputs and textareas only) If set to a string, then a Cancel button will be shown with the string as its label.
+- **:cancel_button_class**: (Inputs and textareas only) Specifies any extra classes to set on the Cancel button.
 - **:sanitize**: True by default. If set to false the input/textarea will accept html tags.
 - **:html_attrs**: Hash of html arguments, such as maxlength, default-value etc.
 - **:inner_class**: Class that is set to the rendered form.
 - **:display_as**: A model method which will be called in order to display
   this field.
 - **:object_name**: Used for overriding the default params key used for the object (the data-object attribute). Useful for e.g. STI scenarios where best_in_place should post to a common controller for different models.
+- **:data**: Hash of custom data attributes to be added to span. Can be used to provide data to the ajax:success callback.
+- **:classes**: Additional classes to apply to the best_in_place span.  Accepts either a string or Array of strings
 
 ###best_in_place_if
 **best_in_place_if condition, object, field, OPTIONS**
@@ -180,6 +184,33 @@ You can also pass in a proc or lambda like this:
 
     = best_in_place @post, :body, :display_with => lambda { |v| textilize(v).html_safe }
 
+## Ajax success callback
+
+### Binding to ajax:success
+
+The 'ajax:success' event is triggered upon success. Use bind:
+
+    $('.best_in_place').bind("ajax:success", function () {$(this).closest('tr').effect('highlight'); });
+
+To bind a callback that is specific to a particular field, use the 'classes' option in the helper method and 
+then bind to that class. 
+    
+    <%= best_in_place @user, :name, :classes => 'highlight_on_success' %>
+    <%= best_in_place @user, :mail, :classes => 'bounce_on_success' %>
+
+    $('.highlight_on_success').bind("ajax:success", function(){$(this).closest('tr').effect('highlight'));});
+    $('.bounce_on_success').bind("ajax:success", function(){$(this).closest('tr').effect('bounce'));});
+
+### Providing data to the callback
+
+Use the :data option to add HTML5 data attributes to the best_in_place span. For example, in your view:
+
+    <%= best_in_place @user, :name, :data => {:user_name => @user.name} %>
+
+And in your javascript:
+
+    $('.best_in_place').bind("ajax:success", function(){ alert('Name updated for '+$(this).data('userName')); });
+
 ##Non Active Record environments
 We are not planning to support other ORMs apart from Active Record, at least for now. So, you can perfectly consider the following workaround as *the right way* until a specific implementation is done for your ORM.
 
@@ -284,13 +315,12 @@ thanks to Rails 3.1. Just begin including the gem in your Gemfile:
 
     gem "best_in_place"
 
-After that, specify the use of the jquery, jquery.purr and best in place
+After that, specify the use of the jquery and best in place
 javascripts in your application.js, and optionally specify jquery-ui if
 you want to use jQuery UI datepickers:
 
     //= require jquery
     //= require jquery-ui
-    //= require jquery.purr
     //= require best_in_place
 
 If you want to use jQuery UI datepickers, you should also install and
@@ -321,7 +351,6 @@ After that, install and load all the javascripts from the folder
 **/public/javascripts** in your layouts. They have to be in the order:
 
 * jquery
-* jquery.purr
 * **best_in_place**
 
 You can automatize this installation by doing
@@ -338,6 +367,27 @@ Finally, as for Rails 3.1, just add a binding to prepare all best in place field
       /* Activating Best In Place */
       jQuery(".best_in_place").best_in_place();
     });
+
+---
+
+## Notification
+
+Sometimes your in-place updates will fail due to validation or for some other reason. In such case, you'll want to notify the user somehow. **Best in Place** supports doing so through the best_in_place:error event, and has built-in support for notification via jquery.purr, right out of the box.
+
+To opt into the jquery.purr error notification, just add best_in_place.purr to your javascripts, as described below. If you'd like to develop your own custom form of error notification, you can use best_in_place.purr as an example to guide you.
+
+###Rails 3.1 and higher
+
+It's as simple as adding:
+
+    //= require best_in_place.purr
+
+###Rails 3.0 and lower
+
+You'll have to load the following additional javascripts, in this order, after loading jquery and **best_in_place**:
+
+ * jquery.purr
+ * **best_in_place.purr**
 
 ---
 
@@ -380,40 +430,6 @@ Fork the project on [github](https://github.com/bernat/best_in_place 'bernat / b
 
 - make sure you've run the bundle command for both the app and test_app!
 - run bundle update <<gem name> (in the right place) for any gems that are causing issues
-
----
-
-##Changelog
-
-###Master branch (and part of the Rails 3.0 branch)
-- v.0.1.0 Initial commit
-- v.0.1.2 Fixing errors in collections (taken value[0] instead of index) and fixing test_app controller responses
-- v.0.1.3 Bug in Rails Helper. Key wrongly considered an Integer.
-- v.0.1.4 Adding two new parameters for further customization urlObject and nilValue and making input update on blur.
-- v.0.1.5 **Attention: this release is not backwards compatible**. Changing params from list to option hash, helper's refactoring,
-  fixing bug with objects inside namespaces, adding feature for passing an external activator handler as param. Adding feature
-  of key ESCAPE for destroying changes before they are made permanent (in inputs and textarea).
-- v.0.1.6-0.1.7 Avoiding request when the input is not modified and allowing the user to not sanitize input data.
-- v.0.1.8 jslint compliant, sanitizing tags in the gem, getting right csrf params, controlling size of textarea (elastic script, for autogrowing textarea)
-- v.0.1.9 Adding elastic autogrowing textareas
-- v.1.0.0 Setting RSpec and Capybara up, and adding some utilities. Mantaining some HTML attributes. Fix a respond_with bug (thanks, @moabite). Triggering ajax:success when ajax call is complete (thanks, @indrekj). Setting up Travis CI. Updated for Rails 3.1.
-- v.1.0.1 Fixing a double initialization bug
-- v.1.0.2 New bip_area text helper to work with text areas.
-- v.1.0.3 replace apostrophes in collection with corresponding HTML entity,
-  thanks @taavo. Implemented `:display_as` option and adding
-  `respond_with_bip` to be used in the controller.
-- v.1.0.4 Depend on ActiveModel instead of ActiveRecord (thanks,
-  @skinnyfit). Added date type (thanks @taavo). Added new feature:
-display_with.
-- v.1.0.5 Fix a bug involving quotes (thanks @ygoldshtrakh). Minor fixes
-  by @bfalling. Add object name option (thanks @nicholassm). Check
-version of Rails before booting. Minor fixes.
-- v.1.0.6 Fix issue with display_with. Update test_app to 3.2.
-
-###Rails 3.0 branch only
-- v.0.2.0 Added RSpec and Capybara setup, and some tests. Fix countries map syntax, Allowing href and some other HTML attributes. Adding Travis CI too. Added the best_in_place_if option. Added ajax:success trigger, thanks to @indrekj.
-- v.0.2.1 Fixing double initialization bug.
-- v.0.2.2 New bip_area text helper.
 
 ---
 
