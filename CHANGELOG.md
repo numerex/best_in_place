@@ -1,5 +1,8 @@
 #Changelog
 
+##Rails 4 branch
+- v.3.0.0 Add compatibility with Rails 4
+
 ##Master branch (and part of the Rails 3.0 branch)
 - v.0.1.0 Initial commit
 - v.0.1.2 Fixing errors in collections (taken value[0] instead of index) and fixing test_app controller responses
